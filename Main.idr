@@ -1,12 +1,23 @@
 %lib Node "http"
 %lib Node "url"
 
-handleRequest : Ptr -> JS_IO Int
-handleRequest req = do
-  foreign FFI_JS "console.log(%0)"
-          (Ptr -> JS_IO Ptr)
-          req
-  pure 201
+writeHead : Ptr -> Int -> JS_IO ()
+writeHead res code =
+  foreign FFI_JS "%0.writeHead(%1)" (Ptr -> Int -> JS_IO ()) res code
+
+end : Ptr -> JS_IO ()
+end res =
+  foreign FFI_JS "%0.end()" (Ptr -> JS_IO ()) res
+
+handleRequest : Ptr -> Ptr -> JS_IO ()
+handleRequest req res = do
+  writeHead res 200
+  end res
+  pure ()
+
+requestProxy : Ptr -> JsFn (Ptr -> JS_IO ())
+requestProxy req =
+  MkJsFn (\res => handleRequest req res)
 
 main : JS_IO ()
 main = do
@@ -18,12 +29,10 @@ main = do
           4000
   foreign FFI_JS """
           %0.on('request', function(req, res) {
-            var statusCode = %1(req)
-            res.writeHead(statusCode)
-            res.end()
+            %1(req)(res)()
           })
           """
-          (Ptr -> JsFn (Ptr -> JS_IO Int) -> JS_IO Ptr)
+          (Ptr -> JsFn (Ptr -> (JsFn (Ptr -> JS_IO ()))) -> JS_IO Ptr)
           server
-          (MkJsFn handleRequest)
+          (MkJsFn requestProxy)
   putStrLn' "Server running"

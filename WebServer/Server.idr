@@ -19,7 +19,7 @@ writeHead = js "%0.writeHead(%1)" (Ptr -> Int -> JS_IO ())
 
 export
 method : (req : Ptr) -> JS_IO String
-method req = js "%0.method" (Ptr -> JS_IO String) req
+method = js "%0.method" (Ptr -> JS_IO String)
 
 export
 end : (res : Ptr) -> JS_IO ()

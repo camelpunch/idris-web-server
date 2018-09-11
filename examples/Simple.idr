@@ -1,4 +1,4 @@
-import Server
+import WebServer.Server
 
 handleRequest : RequestHandler
 handleRequest req res = do

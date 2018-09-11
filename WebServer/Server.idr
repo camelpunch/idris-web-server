@@ -1,4 +1,4 @@
-module Server
+module WebServer.Server
 
 %lib Node "http"
 

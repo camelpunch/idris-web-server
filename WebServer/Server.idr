@@ -14,8 +14,8 @@ write : (res : Ptr) -> (body : String) -> JS_IO ()
 write = js "%0.write(%1)" (Ptr -> String -> JS_IO ())
 
 export
-writeHead : (res : Ptr) -> (code : Int) -> JS_IO ()
-writeHead = js "%0.writeHead(%1)" (Ptr -> Int -> JS_IO ())
+writeHead : (res : Ptr) -> (code : Nat) -> JS_IO ()
+writeHead res code = js "%0.writeHead(%1)" (Ptr -> Int -> JS_IO ()) res (cast code)
 
 export
 method : (req : Ptr) -> JS_IO String

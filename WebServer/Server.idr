@@ -32,29 +32,19 @@ RequestHandler = (req : Ptr) -> (res : Ptr) -> JS_IO ()
 RequestProxy : Type
 RequestProxy = Ptr -> JsFn (Ptr -> JS_IO ())
 
-createRequestProxy : RequestHandler -> RequestProxy
-createRequestProxy handler req =
-  MkJsFn (\res => handler req res)
-
 export
-startServer : (port : Nat) -> RequestHandler -> JS_IO ()
-startServer port handler = do
-  server <- js "http.createServer()" (JS_IO Ptr)
-  js "%0.listen(%1)" (Ptr -> Int -> JS_IO Ptr) server (cast port)
-  js """
-     %0.on('request', function(req, res) {
-       %1(req)(res)()
-     })
-     """
+startServer : (port : Nat) ->
+              (onListening: JS_IO ()) ->
+              RequestHandler -> JS_IO ()
+startServer port onListening onRequest = do
+  server <- js "http.createServer()"
+               (JS_IO Ptr)
+  js "%0.listen(%1)"
+     (Ptr -> Int -> JS_IO Ptr)
+     server (cast port)
+  js "%0.on('request', (req, res) => { %1(req)(res)() })"
      (Ptr -> JsFn RequestProxy -> JS_IO Ptr)
-     server (MkJsFn (createRequestProxy handler))
-  js """
-     %0.on('listening', function() {
-       console.log({
-         timestamp: new Date().getTime(),
-         message: "Server running"
-       })
-     })
-     """
-     (Ptr -> JS_IO ())
-     server
+     server (MkJsFn (MkJsFn . onRequest))
+  js "%0.on('listening', %1)"
+     (Ptr -> JsFn (() -> JS_IO ()) -> JS_IO ())
+     server (MkJsFn (\_ => onListening))

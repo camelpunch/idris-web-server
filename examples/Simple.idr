@@ -7,4 +7,8 @@ handleRequest req res = do
   end res
 
 main : JS_IO ()
-main = startServer 4000 handleRequest
+main = do
+  putStrLn' "Server starting..."
+  startServer 4000
+              (putStrLn' "The server is ready!")
+              handleRequest

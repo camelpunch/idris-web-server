@@ -7,19 +7,19 @@ js : (fname : String) ->
      (ty : Type) ->
      {auto fty : FTy FFI_JS [] ty} ->
      ty
-js fname ty = foreign FFI_JS fname ty
+js = foreign FFI_JS
 
 export
-write : Ptr -> String -> JS_IO ()
-write res body = js "%0.write(%1)" (Ptr -> String -> JS_IO ()) res body
+write : (res : Ptr) -> (body : String) -> JS_IO ()
+write = js "%0.write(%1)" (Ptr -> String -> JS_IO ())
 
 export
-writeHead : Ptr -> Int -> JS_IO ()
-writeHead res code = js "%0.writeHead(%1)" (Ptr -> Int -> JS_IO ()) res code
+writeHead : (res : Ptr) -> (code : Int) -> JS_IO ()
+writeHead = js "%0.writeHead(%1)" (Ptr -> Int -> JS_IO ())
 
 export
-end : Ptr -> JS_IO ()
-end res = js "%0.end()" (Ptr -> JS_IO ()) res
+end : (res : Ptr) -> JS_IO ()
+end = js "%0.end()" (Ptr -> JS_IO ())
 
 public export
 RequestHandler : Type

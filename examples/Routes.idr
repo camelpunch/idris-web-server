@@ -6,15 +6,13 @@ handleRequest : RouteTable -> RequestHandler
 handleRequest routes req res = do
   let request = requestFromRaw !(method req) !(url req)
   let response = responseFromRequest request routes
-  writeHead res (code response)
-  write res (body response)
-  end res
+  respondWith res response
 
 routes : RouteTable
 routes = [
   ( Get, "/"
   , MkResponse 200
-    "cool\n"
+    "€cool\n"
   )
 ]
 

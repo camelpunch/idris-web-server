@@ -67,6 +67,15 @@ export
 end : Command
 end = js "%0.end()" Command
 
+export
+respondWith : Ptr -> Response -> JS_IO ()
+respondWith res response = do
+  js "%0.setHeader(\"Content-Length\", Buffer.byteLength(%1))"
+     SendString res (body response)
+  writeHead res (code response)
+  write res (body response)
+  end res
+
 public export
 RequestHandler : Type
 RequestHandler = (req : Ptr) -> (res : Ptr) -> JS_IO ()

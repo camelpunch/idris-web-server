@@ -1,5 +1,7 @@
 module WebServer.Server
 
+import WebServer.JS
+
 %lib Node "http"
 
 public export
@@ -41,32 +43,29 @@ requestFromRaw "POST"    url = MkRequest Post url
 requestFromRaw "PUT"     url = MkRequest Put url
 requestFromRaw _         url = MkRequest Head url
 
-%inline
-js : (fname : String) ->
-     (ty : Type) ->
-     {auto fty : FTy FFI_JS [] ty} ->
-     ty
-js = foreign FFI_JS
-
 export
-write : (res : Ptr) -> (body : String) -> JS_IO ()
-write = js "%0.write(%1)" (Ptr -> String -> JS_IO ())
+write : SendString
+write = js "%0.write(%1)" SendString
 
 export
 writeHead : (res : Ptr) -> (code : Nat) -> JS_IO ()
-writeHead res code = js "%0.writeHead(%1)" (Ptr -> Int -> JS_IO ()) res (cast code)
+writeHead res code = js "%0.writeHead(%1)" SendInt res (cast code)
 
 export
-method : (req : Ptr) -> JS_IO String
-method = js "%0.method" (Ptr -> JS_IO String)
+setHeader : SetKeyValue
+setHeader res key value = js "%0.setHeader(%1, %2)" SetKeyValue res key value
 
 export
-url : (req : Ptr) -> JS_IO String
-url = js "%0.url" (Ptr -> JS_IO String)
+method : GetString
+method = js "%0.method" GetString
 
 export
-end : (res : Ptr) -> JS_IO ()
-end = js "%0.end()" (Ptr -> JS_IO ())
+url : GetString
+url = js "%0.url" GetString
+
+export
+end : Command
+end = js "%0.end()" Command
 
 public export
 RequestHandler : Type
@@ -85,18 +84,15 @@ responseFromRequest req@(MkRequest method path) ((routeMethod, routePath, resp) 
   else responseFromRequest req routes
 
 RequestProxy : Type
-RequestProxy = Ptr -> JsFn (Ptr -> JS_IO ())
+RequestProxy = Ptr -> JsFn Command
 
 export
 startServer : (port : Nat) ->
               (onListening: JS_IO ()) ->
               RequestHandler -> JS_IO ()
 startServer port onListening onRequest = do
-  server <- js "http.createServer()"
-               (JS_IO Ptr)
-  js "%0.listen(%1)"
-     (Ptr -> Int -> JS_IO Ptr)
-     server (cast port)
+  server <- js "http.createServer()" (JS_IO Ptr)
+  js "%0.listen(%1)" SendInt server (cast port)
   js "%0.on('request', (req, res) => { %1(req)(res)() })"
      (Ptr -> JsFn RequestProxy -> JS_IO Ptr)
      server (MkJsFn (MkJsFn . onRequest))

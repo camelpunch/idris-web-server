@@ -4,9 +4,9 @@
 all: examples/Routes.min.js examples/Simple.min.js
 dev: examples/Routes.js examples/Simple.js
 clean:
-	rm examples/*.js
-	rm examples/*.ibc
-	rm WebServer/*.ibc
+	rm -f examples/*.js
+	rm -f examples/*.ibc
+	rm -f WebServer/*.ibc
 
 .SUFFIXES: .js .min.js .idr
 .idr.js:

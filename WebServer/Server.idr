@@ -1,5 +1,7 @@
 module WebServer.Server
 
+import public Data.SortedMap
+
 import WebServer.JS
 import public WebServer.RequestMethod
 import public WebServer.Request
@@ -15,13 +17,9 @@ IORequestHandler : Type
 IORequestHandler = (req : Ptr) -> (res : Ptr) -> JS_IO ()
 
 public export
-Route : Type
-Route = (RequestMethod, String, RequestHandler)
-%name Route route
-
-public export
 RouteTable : Type
-RouteTable = List Route
+RouteTable = SortedMap String (SortedMap RequestMethod RequestHandler)
+%name RouteTable routes
 
 pureHandler2IOHandler : RequestHandler -> IORequestHandler
 pureHandler2IOHandler f ptrReq ptrRes = do
@@ -50,3 +48,7 @@ startServer port onListening onRequest = do
   js "%0.on('listening', %1)"
      (Ptr -> JsFn (() -> JS_IO ()) -> JS_IO ())
      server (MkJsFn (\_ => onListening))
+
+-- Local Variables:
+-- idris-load-packages: ("contrib")
+-- End:

@@ -29,3 +29,7 @@ Show RequestMethod where
   show Options = "OPTIONS"
   show Post = "POST"
   show Put = "PUT"
+
+export
+Ord RequestMethod where
+  compare x y = compare (show x) (show y)

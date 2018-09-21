@@ -2,29 +2,39 @@ import WebServer.Server
 
 %default total
 
+notFound : Response
+notFound = MkResponse 404 "Not Found\n"
+
 home : RequestHandler
 home _ = MkResponse 200 "€cool\n"
 
-wrongMethod : RequestHandler
-wrongMethod _ = MkResponse 405 "Wrong Method, Buddy\n"
+listPosts : RequestHandler
+listPosts _ = MkResponse 200 "Post a, Post b\n"
+
+createPost : RequestHandler
+createPost _ = MkResponse 201 "I honestly made a post\n"
 
 routes : RouteTable
-routes =
-  [ (    Get, "/", home )
-  , (   Post, "/", wrongMethod )
-  , ( Delete, "/", wrongMethod )
+routes = fromList
+  [ ("/", fromList
+    [ (Get, home)
+    ]
+    )
+  , ("/posts", fromList
+    [ (Get, listPosts)
+    , (Post, createPost)
+    ]
+    )
   ]
 
-matches : Request -> Route -> Bool
-matches (MkRequest method path) (rtMethod, rtPath, _) =
-  rtMethod == method && rtPath == path
+match : RouteTable -> Request -> Maybe Response
+match routes req = do
+  methods <- lookup (path req) routes
+  handler <- lookup (method req) methods
+  pure $ handler req
 
 handler : RouteTable -> Request -> Response
-handler [] req = MkResponse 404 "Not Found\n"
-handler (route@(_, _, f) :: routes) req =
-  if req `matches` route
-  then f req
-  else handler routes req
+handler routes req = fromMaybe notFound (match routes req)
 
 partial
 main : JS_IO ()
@@ -33,3 +43,7 @@ main = do
   startServer 4000
               (putStrLn' "The server is ready!")
               (handler routes)
+
+-- Local Variables:
+-- idris-load-packages: ("contrib")
+-- End:

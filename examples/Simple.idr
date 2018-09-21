@@ -8,3 +8,7 @@ main = do
               \req =>
                 MkResponse 200 $
                   "Nice " ++ show (method req) ++ " request, bro\n"
+
+-- Local Variables:
+-- idris-load-packages: ("contrib")
+-- End:

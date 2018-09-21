@@ -8,12 +8,13 @@ Idris and Node.
 ## Run the example
 
 ```bash
-make simple.js
-./simple.js
+make examples/Routes.js
+examples/Routes.js
 ```
 
 Then:
 
 ```bash
 curl -i localhost:4000/
+curl -i -X POST localhost:4000/posts
 ```

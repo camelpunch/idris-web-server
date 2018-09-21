@@ -12,11 +12,20 @@ pureHandler2IOHandler : RequestHandler -> IORequestHandler
 pureHandler2IOHandler f ptrReq ptrRes = do
   let req = requestFromRaw !(method ptrReq) !(url ptrReq)
   let res = f req
+  let label = show (method req) ++ " " ++ path req
+
+  js "console.time(%0)" (String -> JS_IO ()) label
+
   js "%0.setHeader(\"Content-Length\", Buffer.byteLength(%1))"
      SendString ptrRes (body res)
+
   writeHead ptrRes (code res)
   write ptrRes (body res)
   end ptrRes
+
+  js "console.timeLog(%0, %1)"
+     (String -> Int -> JS_IO ())
+     label (cast $ code res)
 
 pureHandler2TwoArgChain : RequestHandler -> TwoArgChain
 pureHandler2TwoArgChain f = MkJsFn $ MkJsFn . pureHandler2IOHandler f

@@ -1,7 +1,5 @@
 module WebServer.Routes
 
-import public Data.SortedMap
-
 import WebServer.Requests
 
 %default total
@@ -21,37 +19,22 @@ Routes : Type
 Routes = List Route
 %name Routes routes
 
-public export
-RouteTable : Type
-RouteTable = SortedMap String (SortedMap RequestMethod RequestHandler)
-%name RouteTable routes
-
-singletonTable : (path : String) ->
-                 RequestMethod ->
-                 RequestHandler ->
-                 RouteTable
-singletonTable path m f = fromList [(path, fromList [(m, f)])]
-
-addRoute : (path : String) -> RequestMethod -> RequestHandler -> RouteTable -> RouteTable
-addRoute path m f routes =
-  mergeWith mergeLeft (singletonTable path m f) routes
+toTuple : Route -> (RequestMethod, String, RequestHandler)
+toTuple (Delete x f) = (Delete, x, f)
+toTuple (Get x f) = (Get, x, f)
+toTuple (Head x f) = (Head, x, f)
+toTuple (Options x f) = (Options, x, f)
+toTuple (Post x f) = (Post, x, f)
+toTuple (Put x f) = (Put, x, f)
 
 export
-mapRoutes : Routes -> RouteTable
-mapRoutes [] = empty
-mapRoutes ((Delete path f) :: routes) = addRoute path Delete f (mapRoutes routes)
-mapRoutes ((Get path f) :: routes) = addRoute path Get f (mapRoutes routes)
-mapRoutes ((Head path f) :: routes) = addRoute path Head f (mapRoutes routes)
-mapRoutes ((Options path f) :: routes) = addRoute path Options f (mapRoutes routes)
-mapRoutes ((Post path f) :: routes) = addRoute path Post f (mapRoutes routes)
-mapRoutes ((Put path f) :: routes) = addRoute path Put f (mapRoutes routes)
-
-export
-match : Request -> RouteTable -> Maybe Response
-match req routes = do
-  methods <- lookup (path req) routes
-  handler <- lookup (method req) methods
-  pure $ handler req
+match : Request -> Routes -> Maybe Response
+match req [] = Nothing
+match req@(MkRequest method path) (x :: xs) =
+  let (m, p, f) = toTuple x in
+  if (method, path) == (m, p)
+  then Just (f req)
+  else match req xs
 
 -- Local Variables:
 -- idris-load-packages: ("contrib")

@@ -24,7 +24,7 @@ appRoutes =
 notFound : Response
 notFound = MkResponse 404 "Not Found\n"
 
-handler : RouteTable -> Request -> Response
+handler : Routes -> Request -> Response
 handler routes req = fromMaybe notFound (match req routes)
 
 partial
@@ -33,7 +33,7 @@ main = do
   putStrLn' "Server starting..."
   startServer 4000
               (putStrLn' "The server is ready!")
-              (handler $ mapRoutes appRoutes)
+              (handler appRoutes)
 
 -- Local Variables:
 -- idris-load-packages: ("contrib")

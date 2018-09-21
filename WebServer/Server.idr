@@ -8,15 +8,20 @@ import public WebServer.Response
 %lib Node "http"
 
 public export
-RouteTable : Type
-RouteTable = List (RequestMethod, String, Response)
-
-public export
 RequestHandler : Type
 RequestHandler = Request -> Response
 
 IORequestHandler : Type
 IORequestHandler = (req : Ptr) -> (res : Ptr) -> JS_IO ()
+
+public export
+Route : Type
+Route = (RequestMethod, String, RequestHandler)
+%name Route route
+
+public export
+RouteTable : Type
+RouteTable = List Route
 
 pureHandler2IOHandler : RequestHandler -> IORequestHandler
 pureHandler2IOHandler f ptrReq ptrRes = do

@@ -2,20 +2,29 @@ import WebServer.Server
 
 %default total
 
-handler : RouteTable -> Request -> Response
-handler [] req = MkResponse 404 "Not Found\n"
-handler ((routeMethod, routePath, resp) :: routes) req@(MkRequest method path) =
-  if routeMethod == method && routePath == path
-  then resp
-  else handler routes req
+home : RequestHandler
+home _ = MkResponse 200 "€cool\n"
+
+wrongMethod : RequestHandler
+wrongMethod _ = MkResponse 405 "Wrong Method, Buddy\n"
 
 routes : RouteTable
-routes = [
-  ( Get, "/"
-  , MkResponse 200
-    "€cool\n"
-  )
-]
+routes =
+  [ (    Get, "/", home )
+  , (   Post, "/", wrongMethod )
+  , ( Delete, "/", wrongMethod )
+  ]
+
+matches : Request -> Route -> Bool
+matches (MkRequest method path) (rtMethod, rtPath, _) =
+  rtMethod == method && rtPath == path
+
+handler : RouteTable -> Request -> Response
+handler [] req = MkResponse 404 "Not Found\n"
+handler (route@(_, _, f) :: routes) req =
+  if req `matches` route
+  then f req
+  else handler routes req
 
 partial
 main : JS_IO ()

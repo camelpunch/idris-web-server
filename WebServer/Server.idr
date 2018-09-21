@@ -1,25 +1,12 @@
 module WebServer.Server
 
-import public Data.SortedMap
-
 import WebServer.JS
-import public WebServer.RequestMethod
-import public WebServer.Request
-import public WebServer.Response
+import public WebServer.Requests
 
 %lib Node "http"
 
-public export
-RequestHandler : Type
-RequestHandler = Request -> Response
-
 IORequestHandler : Type
 IORequestHandler = (req : Ptr) -> (res : Ptr) -> JS_IO ()
-
-public export
-RouteTable : Type
-RouteTable = SortedMap String (SortedMap RequestMethod RequestHandler)
-%name RouteTable routes
 
 pureHandler2IOHandler : RequestHandler -> IORequestHandler
 pureHandler2IOHandler f ptrReq ptrRes = do

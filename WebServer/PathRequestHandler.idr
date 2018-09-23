@@ -6,34 +6,30 @@ import WebServer.Requests
 
 %access public export
 
-data PathArgTypes
-  = Str PathArgTypes
+data Format
+  = Str Format
   | End
-%name PathArgTypes argTypes
+%name Format format
 
-HandlerTypeFromArgTypes : (acc : Type) -> PathArgTypes -> Type
-HandlerTypeFromArgTypes acc (Str argTypes) = String -> HandlerTypeFromArgTypes acc argTypes
-HandlerTypeFromArgTypes acc End = acc
+Eq Format where
+  (==) (Str x) (Str y) = x == y
+  (==) End End = True
+  (==) _ _ = False
 
-parse : (parts : List String) -> PathArgTypes
+HandlerType : Format -> Type
+HandlerType (Str fmt) = String -> HandlerType fmt
+HandlerType End = Response
+%name HandlerType f
+
+parse : (parts : List String) -> Format
 parse parts = parse' End parts
   where
-  parse' : (acc : PathArgTypes) -> (parts : List String) -> PathArgTypes
+  parse' : (acc : Format) -> (parts : List String) -> Format
   parse' acc [] = acc
   parse' acc (part :: parts) =
     case unpack part of
          (':' :: chars) => Str (parse' acc parts)
          _              => parse' acc parts
 
-PathRequestHandler : (path : String) -> Type
-PathRequestHandler path =
-  Request -> PlaceholderType Response (split (== '/') path)
-
-  where
-
-  PlaceholderType : Type -> List String -> Type
-  PlaceholderType accType [] = accType
-  PlaceholderType accType (part :: parts) =
-    case unpack part of
-      (':' :: chars) => PlaceholderType (String -> accType) parts
-      _              => PlaceholderType accType parts
+parseFormat : (routePath : String) -> Format
+parseFormat routePath = parse $ (== '/') `split` routePath

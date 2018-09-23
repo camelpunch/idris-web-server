@@ -5,27 +5,32 @@ import WebServer.Routes
 
 appRoutes : Routes
 appRoutes =
-  [ Get "/" $ \req =>
-    MkResponse 200 $ "I ♥ ur " ++ show (method req) ++ " method\n"
+  [ get "/" $ \req =>
+    MkResponse 200 $
+    "I ♥ ur " ++ show (method req) ++ " method\n"
 
-  , Get "/" $ \req =>
-    MkResponse 200 $ "Unreachable endpoint\n"
+  , get "/" $ \req =>
+    MkResponse 200 $
+    "Unreachable endpoint\n"
 
-  , Get "/posts" $ \_ =>
-    MkResponse 200 "Post a, Post b\n"
+  , get "/posts" $ \_ =>
+    MkResponse 200 $
+    "Post a, Post b\n"
 
-  , Post "/posts" $ \_ =>
-    MkResponse 201 "I honestly made a post\n"
+  , post "/posts" $ \_ =>
+    MkResponse 201 $
+    "I honestly made a post\n"
 
-  , Delete "/posts/:id" $ \_ =>
-    MkResponse 500 "We haven't got that far, yet.\n"
+  , delete "/posts/:id/foo/:bar" $ \req, id, bar =>
+    MkResponse 200 $
+    "You passed " ++ id ++ " and " ++ bar ++ "\n"
   ]
 
 notFound : Response
 notFound = MkResponse 404 "Not Found\n"
 
 handler : Routes -> Request -> Response
-handler routes req = fromMaybe notFound (match req routes)
+handler routes req = fromMaybe notFound (handle req routes)
 
 partial
 main : JS_IO ()

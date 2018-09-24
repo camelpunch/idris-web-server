@@ -1,8 +1,7 @@
 module WebServer.Routes
 
 import WebServer.Requests
-
-import public WebServer.PathRequestHandler
+import public WebServer.Format
 
 %default total
 
@@ -16,23 +15,32 @@ record Route where
 %name Route route
 
 public export
-delete : (path : String) -> (Request -> HandlerType (parseFormat path)) -> Route
-delete path f = MkRoute Delete path (parseFormat path) f
+RouteConfig : Type
+RouteConfig = (path : String) ->
+              (Request -> HandlerType (parseFormat path)) ->
+              Route
 public export
-get : (path : String) -> (Request -> HandlerType (parseFormat path)) -> Route
-get path f = MkRoute Get path (parseFormat path) f
+routeConfig : RequestMethod -> RouteConfig
+routeConfig method path = MkRoute method path (parseFormat path)
+
 public export
-head : (path : String) -> (Request -> HandlerType (parseFormat path)) -> Route
-head path f = MkRoute Head path (parseFormat path) f
+delete : RouteConfig
+delete = routeConfig Delete
 public export
-options : (path : String) -> (Request -> HandlerType (parseFormat path)) -> Route
-options path f = MkRoute Options path (parseFormat path) f
+get : RouteConfig
+get = routeConfig Get
 public export
-post : (path : String) -> (Request -> HandlerType (parseFormat path)) -> Route
-post path f = MkRoute Post path (parseFormat path) f
+head : RouteConfig
+head = routeConfig Head
 public export
-put : (path : String) -> (Request -> HandlerType (parseFormat path)) -> Route
-put path f = MkRoute Put path (parseFormat path) f
+options : RouteConfig
+options = routeConfig Head
+public export
+post : RouteConfig
+post = routeConfig Post
+public export
+put : RouteConfig
+put = routeConfig Put
 
 public export
 Routes : Type
@@ -44,8 +52,13 @@ pathMatch reqPath routePath =
   if reqPath == routePath then
     Just []
   else
-    partsMatch [] ((== '/') `split` reqPath) ((== '/') `split` routePath)
+    partsMatch [] (divide reqPath) (divide routePath)
+
   where
+
+  divide : (path : String) -> List String
+  divide = split (== '/')
+
   partsMatch : (acc : List String) ->
                (req : List String) ->
                (route : List String) ->
@@ -54,36 +67,33 @@ pathMatch reqPath routePath =
   partsMatch (arg :: args) [] [] = Just (arg :: args)
   partsMatch acc [] (x :: xs) = Nothing
   partsMatch acc (x :: xs) [] = Nothing
-  partsMatch acc (x :: xs) (y :: ys) =
-    if x == y then
-      partsMatch acc xs ys
+  partsMatch acc (reqPart :: reqParts) (routePart :: routeParts) =
+    if reqPart == routePart then
+      partsMatch acc reqParts routeParts
     else
-      case unpack y of
-        (':' :: chars) => partsMatch (acc ++ [x]) xs ys
-        _ => Nothing
+      case unpack routePart of
+        (':' :: chars) => partsMatch (acc ++ [reqPart]) reqParts routeParts
+        _              => Nothing
 
 export
 handle : Request -> Routes -> Maybe Response
 handle req [] = Nothing
 handle req (route :: routes) =
   case (method req == method route, path req `pathMatch` path route) of
-    (True, Just args) => Just $ applyHandler route args
-    (True, Nothing) => handle req routes
-    (False, _) => handle req routes
-  where
-  applyH : (fmt : Format) ->
-           (f : HandlerType fmt) ->
-           (args : List String) ->
-           Response
-  applyH (Str format) f [] = MkResponse 500 "Server Error"
-  applyH (Str format) f (arg :: args) = applyH format (f arg) args
-  applyH End response _ = response
+    (True, Just args) =>
+      Just $ applyHandler (format route) (handler route req) args
+    _ =>
+      handle req routes
 
-  applyHandler : (r : Route) ->
+  where
+
+  applyHandler : (fmt : Format) ->
+                 (f : HandlerType fmt) ->
                  (args : List String) ->
                  Response
-  applyHandler route args =
-    applyH (format route) (handler route req) args
+  applyHandler (Str format) f [] = MkResponse 500 "Server Error"
+  applyHandler (Str format) f (arg :: args) = applyHandler format (f arg) args
+  applyHandler End response _ = response
 
 -- Local Variables:
 -- idris-load-packages: ("contrib")

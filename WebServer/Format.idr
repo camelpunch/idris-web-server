@@ -1,4 +1,4 @@
-module WebServer.PathRequestHandler
+module WebServer.Format
 
 import WebServer.Requests
 

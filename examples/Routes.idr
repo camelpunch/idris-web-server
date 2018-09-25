@@ -21,9 +21,9 @@ appRoutes =
     MkResponse 201 $
     "I honestly made a post\n"
 
-  , delete "/posts/:id/foo/:bar" $ \req, id, bar =>
+  , delete "/posts/:num.id/foo/:bar/:str.baz" $ \req, id, bar, baz =>
     MkResponse 200 $
-    "You passed " ++ id ++ " and " ++ bar ++ "\n"
+    "You passed " ++ show id ++ " and " ++ bar ++ " and " ++ baz ++ "\n"
   ]
 
 notFound : Response

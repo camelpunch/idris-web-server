@@ -81,19 +81,27 @@ handle req [] = Nothing
 handle req (route :: routes) =
   case (method req == method route, path req `pathMatch` path route) of
     (True, Just args) =>
-      Just $ applyHandler (format route) (handler route req) args
+      applyHandler (format route) (handler route req) args
     _ =>
       handle req routes
 
   where
 
+  str2Nat : String -> Maybe Nat
+  str2Nat s = all isDigit (unpack s) `toMaybe` cast s
+
   applyHandler : (fmt : Format) ->
                  (f : HandlerType fmt) ->
                  (args : List String) ->
-                 Response
-  applyHandler (Str format) f [] = MkResponse 500 "Server Error"
-  applyHandler (Str format) f (arg :: args) = applyHandler format (f arg) args
-  applyHandler End response _ = response
+                 Maybe Response
+  applyHandler (Num format) f (arg :: args) =
+    applyHandler format (f !(str2Nat arg)) args
+  applyHandler (Str format) f (arg :: args) =
+    applyHandler format (f arg) args
+  applyHandler End f _ =
+    Just f
+  applyHandler _ f [] =
+    Nothing
 
 -- Local Variables:
 -- idris-load-packages: ("contrib")

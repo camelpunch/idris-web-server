@@ -59,21 +59,19 @@ pathMatch reqPath routePath =
   divide : (path : String) -> List String
   divide = split (== '/')
 
-  partsMatch : (acc : List String) ->
+  partsMatch : (matches : List String) ->
                (req : List String) ->
                (route : List String) ->
                Maybe (List String)
-  partsMatch [] [] [] = Nothing
-  partsMatch (arg :: args) [] [] = Just (arg :: args)
-  partsMatch acc [] (x :: xs) = Nothing
-  partsMatch acc (x :: xs) [] = Nothing
-  partsMatch acc (reqPart :: reqParts) (routePart :: routeParts) =
+  partsMatch (match :: matches) [] [] = Just (match :: matches)
+  partsMatch _ [] _ = Nothing
+  partsMatch _ _ [] = Nothing
+  partsMatch matches (reqPart :: reqParts) (routePart :: routeParts) =
     if reqPart == routePart then
-      partsMatch acc reqParts routeParts
-    else
-      case unpack routePart of
-        (':' :: chars) => partsMatch (acc ++ [reqPart]) reqParts routeParts
-        _              => Nothing
+      partsMatch matches reqParts routeParts
+    else case unpack routePart of
+      (':' :: chars) => partsMatch (matches ++ [reqPart]) reqParts routeParts
+      _              => Nothing
 
 export
 handle : Request -> Routes -> Maybe Response

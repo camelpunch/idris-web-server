@@ -1,4 +1,4 @@
-module WebServer.Server
+module WebServer
 
 import WebServer.JS
 import public WebServer.Requests

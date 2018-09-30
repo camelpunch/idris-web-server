@@ -30,11 +30,17 @@ TwoArgChain = JsFn (Ptr -> JsFn (Ptr -> JS_IO ()))
 write : SendString
 write = js "%0.write(%1)" SendString
 
-writeHead : (res : Ptr) -> (code : Nat) -> JS_IO ()
+writeHead : Cast a Int => (res : Ptr) -> (code : a) -> JS_IO ()
 writeHead res code = js "%0.writeHead(%1)" SendInt res (cast code)
 
-setHeader : SetKeyValue
-setHeader = js "%0.setHeader(%1, %2)" SetKeyValue
+setHeader : Ptr -> (String, String) -> JS_IO ()
+setHeader ptrRes (k, v) =
+  js "%0.setHeader(%1, %2)"
+     (Ptr -> String -> String -> JS_IO ())
+     ptrRes k v
+
+setHeaders : Ptr -> List (String, String) -> JS_IO ()
+setHeaders = traverse_ . setHeader
 
 method : GetString
 method = js "%0.method" GetString
@@ -44,3 +50,6 @@ url = js "%0.url" GetString
 
 end : Command
 end = js "%0.end()" Command
+
+byteLength : String -> JS_IO Int
+byteLength = js "Buffer.byteLength(%0)" (String -> JS_IO Int)

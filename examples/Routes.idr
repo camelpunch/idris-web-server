@@ -1,36 +1,51 @@
-import WebServer.Server
+import WebServer
 import WebServer.Routes
 
 %default total
 
+standardHeaders : (body : String) -> List Header
+standardHeaders body =
+  [ ContentLengthFor body
+  , ContentType TextHtmlUtf8
+  , Custom "Foo" "Bar"
+  ]
+
+respondWith : (code : Code) -> (body : String) -> Response
+respondWith code body =
+  MkResponse code body $ standardHeaders body
+
+notFound : Response
+notFound =
+  respondWith NotFound "Not Found\n"
+
 appRoutes : Routes
 appRoutes =
   [ get "/" $ \req =>
-    MkResponse 200 $
+    respondWith OK $
     "I ♥ ur " ++ show (method req) ++ " method\n"
 
   , get "/" $ \req =>
-    MkResponse 200 $
+    respondWith OK $
     "Unreachable endpoint\n"
 
   , get "/posts" $ \_ =>
-    MkResponse 200 $
+    respondWith OK $
     "Post a, Post b\n"
 
   , post "/posts" $ \_ =>
-    MkResponse 201 $
-    "I honestly made a post\n"
+    let body = "I honestly made a post\n" in
+      MkResponse
+        Created body $
+        Location "/posts/thenewpost" :: standardHeaders body
 
   , delete "/posts/:num.id/foo/:bar/:str.baz" $ \req, id, bar, baz =>
-    MkResponse 200 $
+    respondWith OK $
     "You passed " ++ show id ++ " and " ++ bar ++ " and " ++ baz ++ "\n"
   ]
 
-notFound : Response
-notFound = MkResponse 404 "Not Found\n"
-
 handler : Routes -> Request -> Response
-handler routes req = fromMaybe notFound (handle req routes)
+handler routes req =
+  fromMaybe notFound (handle req routes)
 
 partial
 main : JS_IO ()

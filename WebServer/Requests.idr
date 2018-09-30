@@ -37,10 +37,34 @@ record Request where
   path : String
 %name Request req
 
+data ContentTypeValue
+  = TextHtmlUtf8
+
+data CacheControlValue
+  = NoCache
+
+data Header
+  = Custom String String
+  | ContentLengthFor String
+  | ContentType ContentTypeValue
+  | CacheControl CacheControlValue
+  | Location String
+
+data Code
+  = OK
+  | Created
+  | NotFound
+
+Cast Code Int where
+  cast OK = 200
+  cast Created = 201
+  cast NotFound = 404
+
 record Response where
   constructor MkResponse
-  code : Nat
+  code : Code
   body : String
+  headers : List Header
 %name Response res
 
 requestFromRaw : (meth : String) -> (url : String) -> Request

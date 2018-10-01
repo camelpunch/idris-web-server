@@ -1,5 +1,7 @@
 module WebServer.Requests
 
+import WebServer.JS
+
 %default total
 %access public export
 
@@ -43,12 +45,35 @@ data ContentTypeValue
 data CacheControlValue
   = NoCache
 
-data Header
-  = Custom String String
-  | ContentLengthFor String
-  | ContentType ContentTypeValue
-  | CacheControl CacheControlValue
-  | Location String
+contentType : (filename : String) -> String
+contentType filename =
+  case reverse (split (== '.') filename) of
+    ("css" :: _) => "text/css"
+    ("js" :: _) => "application/javascript"
+    _ => "text/html; charset=utf-8"
+
+mutual
+  data Header
+    = Custom String String
+    | ContentLengthFor String
+    | ContentType ContentTypeValue
+    | ContentTypeFor String
+    | CacheControl CacheControlValue
+    | Location String
+
+  parseHeader : Header -> JS_IO (String, String)
+  parseHeader (Custom k v) =
+    pure (k, v)
+  parseHeader (ContentLengthFor body) =
+    pure ("Content-Length", show !(byteLength body))
+  parseHeader (ContentTypeFor s) =
+    pure ("Content-Type", contentType s)
+  parseHeader (ContentType TextHtmlUtf8) =
+    pure ("Content-Type", contentType "html")
+  parseHeader (CacheControl NoCache) =
+    pure ("Cache-Control", "no-cache")
+  parseHeader (Location uri) =
+    pure ("Location", uri)
 
 data Code
   = OK

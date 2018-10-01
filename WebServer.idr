@@ -9,18 +9,6 @@ import public WebServer.Requests
 IORequestHandler : Type
 IORequestHandler = (req : Ptr) -> (res : Ptr) -> JS_IO ()
 
-parseHeader : Header -> JS_IO (String, String)
-parseHeader (Custom k v) =
-  pure (k, v)
-parseHeader (ContentLengthFor body) =
-  pure ("Content-Length", show !(byteLength body))
-parseHeader (ContentType TextHtmlUtf8) =
-  pure ("Content-Type", "text/html; charset=utf-8")
-parseHeader (CacheControl NoCache) =
-  pure ("Cache-Control", "no-cache")
-parseHeader (Location uri) =
-  pure ("Location", uri)
-
 time : String -> JS_IO ()
 time = js "console.time(%0)" (String -> JS_IO ())
 

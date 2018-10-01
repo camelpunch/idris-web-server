@@ -54,6 +54,8 @@ contentType filename =
       "text/css"
     ("js" :: _) =>
       "application/javascript"
+    ("pdf" :: _) =>
+      "application/pdf"
     _ =>
       "text/html; charset=utf-8"
 

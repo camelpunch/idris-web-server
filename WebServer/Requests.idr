@@ -48,9 +48,14 @@ data CacheControlValue
 contentType : (filename : String) -> String
 contentType filename =
   case reverse (split (== '.') filename) of
-    ("css" :: _) => "text/css"
-    ("js" :: _) => "application/javascript"
-    _ => "text/html; charset=utf-8"
+    ("asc" :: _) =>
+      "application/octet-stream"
+    ("css" :: _) =>
+      "text/css"
+    ("js" :: _) =>
+      "application/javascript"
+    _ =>
+      "text/html; charset=utf-8"
 
 mutual
   data Header

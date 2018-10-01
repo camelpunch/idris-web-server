@@ -48,6 +48,8 @@ startServer port onListening onRequest = do
   js "%0.on('listening', %1)"
      (Ptr -> JsFn (() -> JS_IO ()) -> JS_IO ())
      server (MkJsFn (\_ => onListening))
+  js "process.on('SIGINT', process.exit)"
+     (JS_IO ())
 
 -- Local Variables:
 -- idris-load-packages: ("contrib")

@@ -1,4 +1,4 @@
-import WebServer.Server
+import WebServer
 
 main : JS_IO ()
 main = do
@@ -6,8 +6,10 @@ main = do
   startServer 4000
               (putStrLn' "The server is ready!") $
               \req =>
-                MkResponse 200 $
-                  "Nice " ++ show (method req) ++ " request, bro\n"
+                MkResponse
+                  OK
+                  ("Nice " ++ show (method req) ++ " request, bro\n")
+                  []
 
 -- Local Variables:
 -- idris-load-packages: ("contrib")
